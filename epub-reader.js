@@ -166,8 +166,11 @@ class EPUBReader {
             if (event.target.closest('button, a, input, .bottom-nav')) return;
             if (window.matchMedia('(hover: none)').matches) showToolbar(!main.classList.contains('toolbar-visible'));
         });
-        main.addEventListener('focusin', () => showToolbar(true));
-
+main.addEventListener('focusin', () => {
+    if (window.innerWidth > 1024) {
+        showToolbar(true);
+    }
+});
     }
 
     setSidebarOpen(open) {
