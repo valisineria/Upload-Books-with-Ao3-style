@@ -149,25 +149,48 @@ class EPUBReader {
         if (bottomNav) { this.chapterBottomNav = bottomNav; this.elements.readerContent.appendChild(bottomNav); }
 
         // Show the top controls on desktop only when the pointer reaches the top.
-        // On touch devices, tapping the reading area toggles the controls.
-        const main = document.querySelector('.main-content');
-        const toolbar = document.querySelector('.toolbar');
-        const showToolbar = (visible) => main.classList.toggle('toolbar-visible', visible);
-        main.addEventListener('mousemove', (event) => {
-            if (event.pointerType === 'touch') return;
-            const y = event.clientY - main.getBoundingClientRect().top;
-            if (y < 85 || toolbar.contains(event.target)) showToolbar(true);
-            else if (!this.elements.settingsPanel.classList.contains('active')) showToolbar(false);
-        });
-        main.addEventListener('mouseleave', () => {
-            if (!this.elements.settingsPanel.classList.contains('active')) showToolbar(false);
-        });
-        this.elements.readerContent.addEventListener('click', (event) => {
-            if (event.target.closest('button, a, input, .bottom-nav')) return;
-            if (window.matchMedia('(hover: none)').matches) showToolbar(!main.classList.contains('toolbar-visible'));
-        });
+ // Toolbar: hover på dator, klick på mobil och iPad
+const main = document.querySelector('.main-content');
+const toolbar = document.querySelector('.toolbar');
+
+const isMobileOrTablet = () => window.innerWidth <= 1024;
+
+const showToolbar = (visible) => {
+    main.classList.toggle('toolbar-visible', visible);
+};
+
+// Dator: visa när musen är längst upp
+main.addEventListener('mousemove', (event) => {
+    if (isMobileOrTablet()) return;
+
+    const y = event.clientY - main.getBoundingClientRect().top;
+
+    if (y < 85 || toolbar.contains(event.target)) {
+        showToolbar(true);
+    } else if (!this.elements.settingsPanel.classList.contains('active')) {
+        showToolbar(false);
+    }
+});
+
+main.addEventListener('mouseleave', () => {
+    if (!isMobileOrTablet() &&
+        !this.elements.settingsPanel.classList.contains('active')) {
+        showToolbar(false);
+    }
+});
+
+// Mobil och iPad: tryck för att visa, tryck igen för att dölja
+this.elements.readerContent.addEventListener('click', (event) => {
+    if (!isMobileOrTablet()) return;
+
+    if (event.target.closest('button, a, input, .bottom-nav')) return;
+
+    showToolbar(!main.classList.contains('toolbar-visible'));
+});
+
+// Förhindra att fokus automatiskt visar verktygsfältet på mobil
 main.addEventListener('focusin', () => {
-    if (window.innerWidth > 1024) {
+    if (!isMobileOrTablet()) {
         showToolbar(true);
     }
 });
